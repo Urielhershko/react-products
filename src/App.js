@@ -10,19 +10,25 @@ import Register from "./components/Register";
 import Cart from "./components/Cart";
 import AddProduct from "./components/AddProduct";
 import { Alert } from "react-bootstrap";
+import axiosHttp from './utils/axios'
 
 function App() {
   // "https://django-rest-product.onrender.com/product?category="
   const HOST_URL = "https://django-rest-product.onrender.com";
   const [categories, setCategories] = useState([]);
-  const [currentCategory, setCurrentCategory] = useState(1);
+  const [currentCategory, setCurrentCategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [message, setMessage] = useState("");
   const [showAlert, setShowAlert] = useState(false);
 
-  useEffect(getProducts, [currentCategory]); // when loading the page for the first time - getProducts()
-  useEffect(getCategories, []); // when loading the page for the first time - getCategories()
-  // when category is clicked
+  useEffect(() => {
+    getCategories()
+    getProducts(null, 'byCategory')
+  }, [currentCategory])
+
+  const logout = () => {
+    localStorage.removeItem('token')
+  }
   function productAdded() {
     setCurrentCategory("asgasgasg");
     setCurrentCategory("");
@@ -34,49 +40,48 @@ function App() {
     console.log("click!", id);
     setCurrentCategory(id);
   }
-  function getCategories() {
-    axios
-      .get(HOST_URL + "/category")
-      .then((response) => {
-        console.log("categories are:", response.data);
-        setCategories(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }
-
-  function getProducts(searchText = null) {
-    console.log("!!!!!!!!!!!!!!", searchText);
-    let url = HOST_URL + "/product?category=" + currentCategory;
-    if (searchText) {
-      url = HOST_URL + "/product?search=" + searchText;
+  const getCategories = async () => {
+    try {
+      const response = await axiosHttp.get('/category')
+      setCategories(response.data)
     }
-    axios
-      .get(url)
-      .then((response) => {
-        console.log(response.data);
-        setProducts(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        setProducts([]);
-      });
+    catch (error) {
+      //TODO
+    }
   }
 
-  // example of filter in client
-  // function searchProduct(searchText) {
-
-  //   const filteredProducts = products.filter((product) =>
-  //   product.name.toLowerCase().includes(searchText.toLowerCase())
-  // );
-  // setProducts(filteredProducts);
-  // }
+  const getProducts = async (searchText = null, state = 'all') => {
+    let url = '/product'
+    if (state === 'byCategory' && currentCategory) {
+      url = 'product?category=' + currentCategory;
+    }
+    if (searchText) {
+      url = 'product?search=' + searchText;
+    }
+    try {
+      const response = await axiosHttp.get(url)
+      setProducts(response.data)
+    }
+    catch (error) {
+      //TODO
+    }
+  }
 
   function searchProduct(searchText) {
-    console.log("searching for product", searchText);
     getProducts(searchText);
-    setCurrentCategory("stamsadgfsadhgdshrfdrah"); // setting the category so that the last category will work if clicked again.
+  }
+
+  const addToCart = async (product_id, quantity = 1) => {
+    try {
+      const response = await axiosHttp.post('cart-items', {
+        product_id: product_id,
+        quantity: quantity
+        //TODO alert
+      })
+    }
+    catch (error) {
+      //TODO alert  
+    }
   }
 
   return (
@@ -96,6 +101,8 @@ function App() {
           categories={categories}
           clickButton={clickButton}
           searchProduct={searchProduct}
+          getProducts={getProducts}
+          logout={logout}
         />
         <Routes>
           <Route
@@ -105,7 +112,7 @@ function App() {
                 <div className="row row-cols-1 row-cols-md-3 row-cols-lg-6 g-4">
                   {products.map((product) => (
                     <div key={product.id} className="col">
-                      <Product product={product} />
+                      <Product product={product} addToCart={addToCart} />
                     </div>
                   ))}
                 </div>
