@@ -11,6 +11,7 @@ import Cart from "./components/Cart";
 import AddProduct from "./components/AddProduct";
 import { Alert } from "react-bootstrap";
 import axiosHttp from './utils/axios'
+// import { useNavigate } from 'react-router-dom'
 
 function App() {
   // "https://django-rest-product.onrender.com/product?category="
@@ -21,6 +22,8 @@ function App() {
   const [message, setMessage] = useState("");
   const [showAlert, setShowAlert] = useState(false);
 
+  // const navigate = useNavigate()
+
   useEffect(() => {
     getCategories()
     getProducts(null, 'byCategory')
@@ -28,6 +31,7 @@ function App() {
 
   const logout = () => {
     localStorage.removeItem('token')
+    window.location.href='/'
   }
   function productAdded() {
     setCurrentCategory("asgasgasg");
@@ -42,6 +46,7 @@ function App() {
   }
   const getCategories = async () => {
     try {
+      debugger
       const response = await axiosHttp.get('/category')
       setCategories(response.data)
     }
