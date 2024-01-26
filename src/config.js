@@ -1,3 +1,3 @@
-const server={API_URL: 'http://localhost:8000'}
+const server={API_URL: 'https://products-django-project.onrender.com'}
 
 export default server
